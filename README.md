@@ -8,3 +8,9 @@ This project is not intended for production use, but rather to:
 - Understand the complete RAG pipeline (indexing → retrieval → generation).
 - Compare the two models in terms of response quality, speed, and memory usage.
 - Experiment with parameters such as chunk size, top-k, and embedding types.
+
+**PostgreSQL** is used as the primary database to store:
+- Document metadata (source, upload date, file type)
+- Conversation history and user queries
+- Retrieved chunks and their relevance scores
+- System logs and analytics data
