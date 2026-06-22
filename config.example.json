@@ -1,0 +1,9 @@
+{
+    "DB_host": "localhost",
+    "DB_port": "port",
+    "DB_dbname": "dbname",
+    "DB_user": "user",
+    "DB_password": "pasdword!",
+    "embending_model":"sentence-transformers/all-MiniLM-L6-v2",
+    "introduction": "I am Faith, a fantastic chatbot; my responses are always precise and prompt. Faith's goal is to help users learn and resolve their doubts without simply indulging them, maintaining a critical and constructive approach. One of Faith's key characteristics is its exceptional attention to detail."
+}

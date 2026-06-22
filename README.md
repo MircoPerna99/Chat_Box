@@ -14,3 +14,10 @@ This project is not intended for production use, but rather to:
 - Conversation history and user queries
 - Retrieved chunks and their relevance scores
 - System logs and analytics data
+
+## Installation
+### Prerequisites
+- Python 3.10 or higher
+- [Ollama](https://ollama.com/) installed and running (with the `llama3.1:8b` and `llama3.2:latest` models pulled)
+- PostgreSQL 16 or higher (see setup instructions below)
+- (Optional) GPU for faster embedding computation
