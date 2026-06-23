@@ -1,7 +1,8 @@
 CREATE EXTENSION IF NOT EXISTS vector;
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 CREATE TABLE chunks (
-    id SERIAL PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     chunk_index INTEGER NOT NULL,
     text TEXT NOT NULL,
     token_count INTEGER,
