@@ -1,0 +1,171 @@
+RIASSUNTO DELLA TESI DI LAUREA MAGISTRALE
+==========================================
+
+Titolo:   A Neural Factorization Machine Approach to Drug-Target Interaction
+          with Global Feature
+
+Autore:   Mirco Perna
+Relatore: Prof.ssa Simona Ester Rombo
+Corso:    Laurea Magistrale in Data, Algorithms and Machine Intelligence
+Ateneo:   Università degli Studi di Palermo – Dipartimento di Matematica e Informatica
+Anno:     2025/2026
+
+
+--------------------------------------------------------------------------
+1. CONTESTO E MOTIVAZIONE
+--------------------------------------------------------------------------
+La ricerca farmaceutica affronta da anni costi elevati e tempi lunghissimi
+nello sviluppo di nuovi farmaci, con un alto rischio di fallimento. Per
+ridurre questi ostacoli, i metodi basati su intelligenza artificiale sono
+stati sempre più adottati nella scoperta di farmaci, in particolare per
+affrontare due problemi strettamente correlati:
+
+  - Drug-Target Interaction (DTI): determinare se un composto chimico
+    (farmaco) si lega a una molecola bersaglio (proteina o acido nucleico),
+    formulato come problema di classificazione binaria.
+
+  - Drug-Target Affinity (DTA): quantificare la forza di tale legame
+    tramite costanti come Kd o Ki, formulato come problema di regressione.
+
+Le Graph Neural Networks (GNN) si sono affermate come strumento privilegiato
+per estrarre informazioni strutturali da molecole e proteine, rappresentate
+come grafi. Tuttavia le GNN presentano limitazioni intrinseche:
+  * Il "radius problem": catturare dipendenze a lungo raggio richiede
+    architetture più profonde, ma la profondità eccessiva causa
+    l'"over-smoothing", rendendo le rappresentazioni dei nodi sempre più
+    indistinguibili.
+  * Il potere espressivo è teoricamente limitato dal test di Weisfeiler-Lehman
+    (WL), impedendo di distinguere certe proprietà strutturali (es. chiralità).
+
+
+--------------------------------------------------------------------------
+2. BACKGROUND TEORICO
+--------------------------------------------------------------------------
+
+Capitolo 2 – Graph Neural Networks
+Le GNN sfruttano il meccanismo di "neural message passing": ogni nodo
+aggrega iterativamente le informazioni dei nodi vicini per aggiornare la
+propria rappresentazione. La tesi esamina le principali varianti di grafi
+(diretti/non diretti, omogenei/eterogenei, dinamici/statici, knowledge
+graph, transductive/inductive) e i task associati (node-level, edge-level,
+graph-level). Vengono approfondite le architetture Graph Convolutional
+Networks (GCN) e Graph Attention Networks (GAT).
+
+Capitolo 3 – Recommender Systems e Factorization Machines
+Per superare i limiti delle GNN, la tesi si ispira ai sistemi di
+raccomandazione. Partendo dalla Matrix Factorization e dall'Alternating
+Least Squares, vengono introdotte le Factorization Machines (FM) e poi
+le Neural Factorization Machines (NFM). Le NFM aggiungono uno strato
+di Bi-Interaction (che calcola l'interazione a coppie tra i vettori di
+embedding tramite prodotto elemento-per-elemento) seguito da strati
+nascosti non lineari, permettendo di catturare interazioni di ordine
+superiore tra le feature in modo efficiente.
+
+
+--------------------------------------------------------------------------
+3. IL MODELLO DI RIFERIMENTO: WGNN-DTA
+--------------------------------------------------------------------------
+WGNN-DTA è il modello baseline su cui si fonda la proposta. La sua
+architettura elabora:
+  - Il grafo della proteina (weighted protein graph), costruito tramite
+    rappresentazioni derivate da ESM (Evolutionary Scale Modeling), con
+    archi pesati in base alla prossimità degli amminoacidi.
+  - Il grafo molecolare del farmaco, codificato tramite una GNN standard.
+
+Le due rappresentazioni latenti (128 dimensioni ciascuna) vengono
+concatenate e passate a due strati Fully Connected per la predizione finale.
+WGNN-DTA è stato progettato per il task DTA ma mostra buone prestazioni
+anche nel task DTI.
+
+
+--------------------------------------------------------------------------
+4. IL MODELLO PROPOSTO: WGNN-DTA + NFM CON GLOBAL FEATURE
+--------------------------------------------------------------------------
+La tesi estende WGNN-DTA per compensare le limitazioni delle GNN
+incorporando descrittori fisicochimici e biologici globali, non accessibili
+tramite convoluzioni su grafi.
+
+Feature globali del farmaco (175 dimensioni):
+  - 8 feature continue che rappresentano proprietà fisicochimiche
+    (calcolate con RDKit).
+  - 166 feature binarie che codificano la presenza/assenza di frammenti
+    strutturali, utili per caratterizzare le interazioni di binding.
+
+Feature globali della proteina (28 dimensioni):
+  - 5 feature continue (proprietà fisicochimiche, calcolate con Biopython).
+  - 3 feature che codificano la proporzione di amminoacidi per tipo di
+    struttura secondaria.
+  - 20 feature corrispondenti alla frequenza relativa di ciascuno dei
+    20 amminoacidi standard (Amino Acid Composition).
+
+Architettura del nuovo modello:
+  1. I due vettori latenti generati dalle GNN (128 dim ciascuno) vengono
+     normalizzati tramite Layer Normalization per uniformarne la scala.
+  2. Le rappresentazioni normalizzate vengono concatenate con il vettore
+     globale (203 dim), ottenendo un vettore finale di 459 dimensioni.
+  3. Il modulo di predizione (MLP in WGNN-DTA) viene sostituito con una
+     Neural Factorization Machine (NFM), più adatta a gestire vettori
+     sparsi e a catturare interazioni di ordine superiore tra le feature.
+
+
+--------------------------------------------------------------------------
+5. DATASET E SPERIMENTAZIONE
+--------------------------------------------------------------------------
+I modelli sono stati valutati su due dataset biologici:
+  - Human: dataset di interazioni farmaco-proteina nell'organismo umano.
+  - C. elegans: dataset relativo al nematode Caenorhabditis elegans.
+
+Per ogni dataset sono stati testati tre rapporti di split train/test
+(1:1, 1:3, 1:5) e due configurazioni di architettura GNN (GCN e GAT),
+per un totale di 12 configurazioni sperimentali. Le metriche valutate
+sono: AUC (Area Under the Curve), Precisione, Recall e F1-score.
+I modelli sono stati addestrati a 500 e 1000 epoche.
+
+
+--------------------------------------------------------------------------
+6. RISULTATI PRINCIPALI
+--------------------------------------------------------------------------
+I risultati sperimentali mostrano che il modello proposto:
+
+  - Raggiunge prestazioni comparabili a WGNN-DTA già a 500 epoche,
+    mentre WGNN-DTA necessita di 1000 epoche per risultati equivalenti:
+    il nuovo modello converge in circa la metà del tempo di addestramento.
+
+  - A parità di epoche (1000), il modello proposto ottiene risultati
+    migliori di WGNN-DTA, in particolare nelle metriche AUC e Recall.
+
+  - Richiede circa il 40% di parametri in meno rispetto al baseline,
+    riducendo i requisiti di memoria durante training e inferenza, con
+    potenziali benefici anche in termini di efficienza energetica.
+
+  - Il tempo di inferenza del modello proposto è leggermente superiore
+    rispetto a WGNN-DTA.
+
+  - A 500 epoche il tempo totale di addestramento del nuovo modello è
+    inferiore di circa il 40% rispetto a WGNN-DTA a 1000 epoche.
+
+
+--------------------------------------------------------------------------
+7. CONCLUSIONI E SVILUPPI FUTURI
+--------------------------------------------------------------------------
+La tesi dimostra che combinare rappresentazioni basate su GNN con
+descrittori fisicochimici globali e Neural Factorization Machines porta
+a modelli per la predizione di interazioni farmaco-bersaglio che sono
+più compatti, più efficienti dal punto di vista computazionale e con
+prestazioni uguali o superiori al baseline.
+
+I limiti residui includono:
+  - La dipendenza da GNN ancora soggette all'over-smoothing e ai vincoli
+    del test WL, solo parzialmente mitigati dai descrittori globali.
+  - L'assenza di informazioni sulle interazioni tra entità biologiche
+    (farmaci, target, malattie, effetti collaterali).
+
+Direzioni future:
+  - Integrare le relazioni semantiche tra entità biologiche sfruttando
+    la capacità delle NFM di combinare fonti di informazione eterogenee.
+  - Sfruttare il Bi-Interaction Layer per generare rappresentazioni dei
+    nodi migliorate, particolarmente utile per vettori di feature sparsi.
+
+--------------------------------------------------------------------------
+Fine del riassunto
+--------------------------------------------------------------------------

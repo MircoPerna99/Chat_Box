@@ -2,6 +2,7 @@ import psycopg2
 from psycopg2 import Error
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 from configuration import Configuration
+from .Model.chunk_model import ChunkModel
 import os 
 
 class RepositoryManager:
@@ -14,10 +15,10 @@ class RepositoryManager:
         self.port = self._config["DB_port"] 
         self.connection = None
         self.cursor = None
+        self.LOG_INTERVAL = 5
         
     def _get_script(self, file_path):
         path = os.path.abspath(file_path)
-        print(path)
         with open(path, 'r', encoding='utf-8') as file:
             sql_script = file.read()
             return sql_script
@@ -94,11 +95,32 @@ class RepositoryManager:
             print("Tables created correctly")
             print("Setup compleated!")
         except Error as e:
-            print(f"Error on creationing tables: {e}")
+            print(f"Error on creating tables: {e}")
             if self.connection: self.connection.rollback()
         finally:
             self.disconnect()
         
+    def add_chunks(self, chunks : list[ChunkModel]):
+        self.connect()
+        try:
+            print("Percentage of chunks saved:0%")
+            for i in range(len(chunks)):
+                chunk = chunks[i]
+                if(i % self.LOG_INTERVAL):
+                    print(f"Percentage of chunks saved:{int((i/len(chunks))*100)}%")
+                sql_script = self._get_script('RAG_custom/Scripts/Insert_Chunk.txt')
+                self.cursor.execute(sql_script, (chunk.chunk_index, chunk.text, chunk.token_count, "[" + ",".join(map(str, chunk.embedding)) + "]"))
+                self.connection.commit()
+                
+            print("Percentage of chunks saved:100%")
+            print('Completed saving chunks')    
+        except Error as e:
+            print(f"Error on saving chunk: {e}")
+            if self.connection: self.connection.rollback()
+        finally:
+            self.disconnect()
+        
+            
         
             
         

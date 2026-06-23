@@ -8,4 +8,5 @@ CREATE TABLE chunks (
     embedding VECTOR(384),
     created_at TIMESTAMPTZ DEFAULT now()
 );
+CREATE INDEX ON chunks USING ivfflat (embedding vector_l2_ops) WITH (lists = 100);
 

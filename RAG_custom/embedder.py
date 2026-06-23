@@ -3,8 +3,8 @@ from configuration import Configuration
 import torch
 
 
-class EmbeddingModel:
-    def __init__(self, model_name):
+class Embedder:
+    def __init__(self):
         self._config = Configuration()
         self.model_name = self._config["embending_model"]
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
@@ -22,5 +22,5 @@ class EmbeddingModel:
         with torch.no_grad():
             outputs = self.model(**inputs)
              
-        return self._apply_mean_pooling(outputs.last_hidden_state, inputs['attention_mask'])
+        return self._apply_mean_pooling(outputs.last_hidden_state, inputs['attention_mask']), len(inputs)
 
