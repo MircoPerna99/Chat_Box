@@ -1,4 +1,7 @@
-SELECT text, embedding <-> %s AS distance
-FROM chunks
+SELECT text, t.distance
+FROM chunks c
+INNER JOIN
+	 (SELECT chunk_index, embedding <-> %s AS distance
+		FROM chunks
+		LIMIT 5) t on t.chunk_index = c.chunk_index or t.chunk_index = c.chunk_index +1 or t.chunk_index = c.chunk_index -1
 ORDER BY distance
-LIMIT 5
