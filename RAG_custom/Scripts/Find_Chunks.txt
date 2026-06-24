@@ -1,0 +1,4 @@
+SELECT text, embedding <-> %s AS distance
+FROM chunks
+ORDER BY distance
+LIMIT 5

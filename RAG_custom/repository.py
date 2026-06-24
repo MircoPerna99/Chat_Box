@@ -3,6 +3,7 @@ from psycopg2 import Error
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 from configuration import Configuration
 from .Model.chunk_model import ChunkModel
+from pgvector.psycopg2 import register_vector
 import os 
 
 class RepositoryManager:
@@ -32,6 +33,7 @@ class RepositoryManager:
                 host=self.host,
                 port=self.port
             )
+            register_vector(self.connection)
             self.cursor = self.connection.cursor()
         except Error as e:
             print(f"Error during connection to PostgreSQL: {e}")
@@ -109,7 +111,8 @@ class RepositoryManager:
                 if(i % self.LOG_INTERVAL):
                     print(f"Percentage of chunks saved:{int((i/len(chunks))*100)}%")
                 sql_script = self._get_script('RAG_custom/Scripts/Insert_Chunk.txt')
-                self.cursor.execute(sql_script, (chunk.chunk_index, chunk.text, chunk.token_count, "[" + ",".join(map(str, chunk.embedding)) + "]"))
+                # self.cursor.execute(sql_script, (chunk.chunk_index, chunk.text, chunk.token_count, "[" + ",".join(map(str, chunk.embedding)) + "]"))
+                self.cursor.execute(sql_script, (chunk.chunk_index, chunk.text, chunk.token_count, chunk.embedding))
                 self.connection.commit()
                 
             print("Percentage of chunks saved:100%")
@@ -119,7 +122,22 @@ class RepositoryManager:
             if self.connection: self.connection.rollback()
         finally:
             self.disconnect()
-        
+    
+    def find_chunks(self, emdedding):
+        self.connect()
+        texts = []
+        try:
+            sql_script = self._get_script('RAG_custom/Scripts/Find_Chunks.txt')
+            self.cursor.execute(sql_script, (emdedding,))
+            results = self.cursor.fetchall()  
+            for result in results:
+                texts.append(result[0])   
+            return texts
+        except Error as e:
+            print(f"Error on searching chunks: {e}")
+            return None
+        finally:
+            self.disconnect()
             
         
             

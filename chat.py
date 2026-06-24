@@ -1,11 +1,13 @@
 import requests
 import ollama
 from configuration import Configuration
+from chat_box_utilities import ChatBoxUtilities
 
 class FaithChat:
     def __init__(self):
         self._config = Configuration()
         self.introduction = self._config["introduction"]   
+        self._utilits = ChatBoxUtilities()
         self._init_chat()
     
     def _init_chat(self):
@@ -43,6 +45,15 @@ class FaithChat:
             
             if user_input.lower() == 'esci':
                 break
+            
+            context = self._utilits.find_context(user_input)
+            if(context != None):
+                user_input =  f"""Use the following documents to answer the question. 
+
+                    Context:
+                    {context}
+
+                    Question: {user_input}"""
             
             model_response = self.send_message(user_input)
             

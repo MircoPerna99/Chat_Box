@@ -1,5 +1,5 @@
 from chat import FaithChat
 from RAG_custom.document_processor import DocumentProcessor
+from chat_box_utilities import ChatBoxUtilities
 
-# FaithChat().chat_loop()
-DocumentProcessor().save_file('/Users/mircoperna/Documents/Progetti/Chat_Box/riassunto_tesi_Mirco_Perna.txt')
+FaithChat().chat_loop()
